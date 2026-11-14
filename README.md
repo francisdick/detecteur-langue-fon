@@ -2,7 +2,7 @@
 
 Un petit modèle de NLP qui lit une phrase et indique si elle est écrite en **fɔ̀ngbè (fon)**, en **français** ou en **anglais**.
 
-C'est un projet d'apprentissage, construit étape par étape, de la collecte des données jusqu'à une démo en ligne. Il est mené en parallèle du projet communautaire **FonNLP** de Bénin IA Community (BAIC).
+C'est un projet d'apprentissage, construit étape par étape, de la collecte des données jusqu'à une démo en ligne.
 
 > **État du projet :** phase 1 (collecte des données) terminée ✅ · phase 2 (exploration) à venir
 
