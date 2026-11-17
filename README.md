@@ -4,7 +4,7 @@ Un petit modèle de NLP qui lit une phrase et indique si elle est écrite en **f
 
 C'est un projet d'apprentissage, construit étape par étape, de la collecte des données jusqu'à une démo en ligne.
 
-> **État du projet :** phases 0 à 2 terminées ✅ · phase 3 (détecteur à base de règles) à venir
+> **État du projet :** phases 0 à 3 terminées ✅ · phase 4 (modèle d'apprentissage automatique) à venir
 
 ---
 
@@ -70,6 +70,32 @@ Colonnes de `phrases.csv` et `phrases_propres.csv` : `texte`, `langue` (`fon`, `
 Ces biais seront traités dans les phases suivantes :
 
 - **Phase 3** : mesurer le score d'une simple règle « pas de ponctuation finale → fon » pour évaluer l'ampleur du biais.
+
+Avant d'utiliser l'apprentissage automatique, j'ai écrit des règles à la main pour obtenir un **score de référence** : le modèle de la phase 4 devra faire mieux.
+
+- **v1** : une phrase contenant `ɔ`, `ɛ` ou `ɖ` est en fon ; une phrase contenant *the*, *is*, *and* ou *you* est en anglais ; sinon, elle est en français.
+- **v2** : on compte les mots typiques de chaque langue (listes d'une vingtaine de mots en français et en anglais, d'une quinzaine en fon) et on choisit la langue qui en a le plus. Sans aucun mot reconnu, la phrase est classée en fon.
+
+Les règles s'appliquent après un prétraitement (minuscules, ponctuation retirée, tons conservés).
+
+| Version | Score global | Fon avec tons | Fon WhatsApp | Français | Anglais |
+|---|---|---|---|---|---|
+| Règles v1 | 63,1 % | 86,7 % | 0 % | 100 % | 46,0 % |
+| Règles v2 | **82,2 %** | 98,7 % | 40,7 % | 87,7 % | 89,3 % |
+
+**Score de référence retenu : 82,2 % (règles v2).**
+
+**Le biais de la ponctuation, confirmé :** sur le texte brut, la seule règle « pas de ponctuation finale → fon » distingue le fon des deux autres langues dans **99,7 %** des cas, sans rien connaître de la langue. C'est pourquoi la ponctuation est retirée avant toute détection.
+
+**Principales limites des règles :**
+
+1. **Le fon sans lettres spéciales** n'est reconnu que dans 40,7 % des cas, contre 98,7 % avec `ɔ`, `ɛ` et `ɖ`.
+2. **Mots ambigus** : sans tons, des mots fon comme `do`, `we`, `un`, `le` ou `de` s'écrivent comme des mots anglais ou français. Ils expliquent les 91 phrases fon mal classées.
+3. **Listes trop étroites** : la liste de mots fon ne s'est déclenchée que sur 14 phrases. Couvrir la langue demanderait des centaines de mots ajoutés à la main.
+4. **Compromis entre langues** : améliorer le fon et l'anglais a fait baisser le français de 100 % à 87,7 %.
+
+Un mot isolé ne suffit pas à reconnaître une langue : c'est ce que le modèle de la phase 4 doit apprendre à dépasser.
+
 - **Phase 4** : retirer la ponctuation et passer le texte en minuscules dans un prétraitement intégré au modèle. Le même traitement s'appliquera aux phrases saisies dans la démo.
 - **Phase 5** : tester des phrases françaises et anglaises courtes, sans majuscule ni ponctuation, ainsi que des phrases fon longues.
 
@@ -85,6 +111,7 @@ detecteur-langue-fon/
 ├── 00_bases_python.ipynb    # phase 0 : bases de Python
 ├── 01_collecte.ipynb        # phase 1 : collecte, relecture, assemblage
 ├── 02_exploration.ipynb     # phase 2 : exploration, contrôles, repérage des biais
+├── 03_regles.ipynb          # phase 3 : détecteur à base de règles (score de référence)
 ├── SOURCES.md               # sources et licences des données
 ├── LICENSE                  # licence du code (MIT)
 └── README.md
@@ -99,7 +126,7 @@ detecteur-langue-fon/
 | 0 | Bases de Python | ✅ |
 | 1 | Collecte et validation des données | ✅ |
 | 2 | Exploration, contrôles de qualité et repérage des biais (pandas) | ✅ |
-| 3 | Un premier détecteur avec des règles écrites à la main (score de référence) | ⏳ |
+| 3 | Un premier détecteur avec des règles écrites à la main (score de référence) | ✅ |
 | 4 | Un modèle d'apprentissage automatique (scikit-learn) | ⏳ |
 | 5 | Analyse des erreurs, y compris sur les phrases pièges | ⏳ |
 | 6 | Démo en ligne (Gradio, Hugging Face Spaces) | ⏳ |
@@ -112,6 +139,7 @@ detecteur-langue-fon/
 - `01_collecte.ipynb` documente toute la collecte. Les séances 1 et 2 comprennent une **relecture manuelle** : leur résultat est publié dans `data/` (fichiers `*_300.csv`).
 - La séance 3 (assemblage) est reproductible à partir de ces fichiers.
 - `02_exploration.ipynb` est entièrement reproductible : il lit `data/phrases.csv` et `data/pieges.csv`, puis produit `data/phrases_propres.csv`.
+- `03_regles.ipynb` est entièrement reproductible : il lit `data/phrases_propres.csv` et calcule les scores des règles v1 et v2.
 - Les fichiers bruts de Tatoeba (`*.tsv.bz2`) ne sont pas publiés à cause de leur taille. Ils se téléchargent sur https://tatoeba.org/fr/downloads
 
 Outils : Python, pandas, matplotlib, Google Colab.
